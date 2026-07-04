@@ -1,184 +1,108 @@
-<div align="center">
+# LocalForge VS Code Extension
 
-# ▰ LocalForge
-
-### A fully offline AI coding assistant — no cloud, no API keys, no data leaving your machine
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue)](#installation)
-[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%202-24C8DB)](https://tauri.app)
-[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-007ACC)](vscode-extension)
-
-[Features](#features) · [Architecture](#architecture) · [Installation](#installation) · [Usage](#usage) · [Tech Stack](#tech-stack)
-
-</div>
+Offline AI coding assistant — code analysis, suggestions, chat, and debugging inside VS Code.
+Talks to the LocalForge desktop app running on your machine. **No internet needed at runtime.**
 
 ---
 
-## Why LocalForge
+## What you get
 
-Every mainstream AI coding assistant — Copilot, Cursor, Cody — sends your code to a cloud API. For developers working on proprietary codebases, regulated industries, or air-gapped environments, that's a non-starter.
-
-**LocalForge runs entirely on your machine.** The model, the inference engine, and the code index never touch the network. You can disconnect from the internet entirely and it works exactly the same.
-
----
-
-## Features
-
-| | |
+| Feature | How to use |
 |---|---|
-| 🧠 **Local LLM chat** | ChatGPT-style conversational coding assistant, powered by a quantised model running on your CPU |
-| 🔍 **Real-time diagnostics** | AI-powered bug detection, security scanning, and performance analysis — squiggles appear as you save |
-| 🛠️ **Code actions** | Explain, Fix Bug, Refactor, and Generate Tests — right-click any selection |
-| ⌨️ **Inline completions** | Ghost-text suggestions as you type, tuned for CPU-only latency |
-| 📚 **Repository RAG** | Index a codebase and get answers grounded in your actual code, with retrieval over embedded chunks |
-| 🔌 **VS Code integration** | Full extension: sidebar chat, hover explanations, quick-fix lightbulbs, command palette |
-| 📦 **True offline installer** | Single Windows installer bundles the inference engine and model — installs on air-gapped machines |
-| 🔄 **Swappable models** | Change the active model by editing one YAML file — no recompilation |
+| **Inline completions** | Just type — ghost text appears, press Tab to accept |
+| **AI diagnostics** | Save a file — squiggles appear in the editor and Problems panel |
+| **Quick fixes** | Click a squiggle lightbulb — "Apply Fix" or "Explain this issue" |
+| **Explain code** | Select code → right-click → LocalForge ▰ → Explain Code |
+| **Fix bug** | Select code → right-click → Fix Bug — Apply or view in chat |
+| **Refactor** | Select code → right-click → Refactor Code — Apply or view in chat |
+| **Generate tests** | Select code → right-click → Generate Tests |
+| **Sidebar chat** | Click the ▰ icon in the activity bar |
+| **Hover tooltip** | Hover over a function name for a one-line explanation |
+| **Analyse entire file** | Command Palette → "LocalForge: Analyse Entire File" |
 
 ---
 
-## Architecture
+## Step-by-step install
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Desktop App (Tauri 2)                  │
-│  ┌───────────────────────┐    ┌────────────────────────┐  │
-│  │  React + TypeScript    │◄──►│  Rust Core              │  │
-│  │  Chat UI · RAG panel   │IPC │  Model router · Sidecar │  │
-│  │  Model picker          │    │  manager · RAG engine   │  │
-│  └───────────────────────┘    └───────────┬─────────────┘  │
-└──────────────────────────────────────────┼─────────────────┘
-                                            │ localhost:8080
-                              ┌─────────────▼─────────────┐
-                              │   llama-server (llama.cpp)  │
-                              │   Runs the GGUF model        │
-                              └─────────────┬─────────────┘
-                                            │
-                              ┌─────────────▼─────────────┐
-                              │  Qwen2.5-Coder-3B (GGUF)    │
-                              │  Fully local, on-disk        │
-                              └───────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│              VS Code Extension (TypeScript)                │
-│   Inline completions · Diagnostics · Sidebar chat ·         │
-│   Code actions · Hover explanations                         │
-│   ─── talks to the same localhost:8080 engine above ───     │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Design decision — why Tauri, not Electron:** on a 16 GB target machine, RAM is the scarce resource. Tauri's Rust core idles at a fraction of Electron's footprint, leaving more headroom for the model itself. Tauri's bundler also natively produces the Windows installer format this project ships as.
-
-**Design decision — why the engine is bundled, not assumed:** rather than requiring the user to separately install Ollama, the app bundles `llama-server.exe` and the model file as resources and manages the process lifecycle itself. This is what makes a genuinely offline, single-installer experience possible.
-
-Full write-up: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Desktop shell | **Tauri 2** |
-| Backend engine | **Rust** (tokio, reqwest, serde) |
-| Frontend | **React 18 + TypeScript + Vite** |
-| Inference | **llama.cpp** (`llama-server`) |
-| Model format | **GGUF** — Qwen2.5-Coder-3B-Instruct |
-| RAG | Custom chunking + cosine similarity retrieval |
-| Editor integration | **VS Code Extension API** (TypeScript) |
-| Packaging | Tauri bundler (NSIS) + 7-Zip SFX for single-file offline install |
-
----
-
-## Repository structure
-
-```
-localforge/
-├─ desktop-app/            The Tauri application
-│  ├─ src/                 React frontend
-│  └─ src-tauri/           Rust backend, model providers, RAG engine
-├─ vscode-extension/       The VS Code extension
-│  └─ src/                 Completions, diagnostics, chat panel, commands
-└─ docs/                   Architecture notes and screenshots
-```
-
----
-
-## Installation
-
-### Prerequisites (for building from source)
+### Prerequisites
+- LocalForge desktop app is installed and running (the engine must be up)
+- VS Code 1.85 or later
 - Node.js 20+
-- Rust (via [rustup](https://rustup.rs))
-- Microsoft C++ Build Tools (Windows) — "Desktop development with C++" workload
 
-### Build the desktop app
-
-```bash
-cd desktop-app
+### 1. Install dependencies
+Open a terminal in the `localforge-vscode` folder:
+```powershell
+cd path\to\localforge-vscode
 npm install
-npx tauri icon app-icon.png
-
-# Fetch the inference engine + model (one-time, needs internet)
-./scripts/fetch-deps.ps1        # Windows
-# or point at your own GGUF model — see desktop-app/README.md
-
-npm run tauri dev               # run in development
-npm run tauri build             # produce the installer
 ```
 
-The installer is written to `desktop-app/src-tauri/target/release/bundle/nsis/`.
-
-### Build the VS Code extension
-
-```bash
-cd vscode-extension
-npm install
+### 2. Compile the TypeScript
+```powershell
 npm run compile
-npx vsce package --no-dependencies
-code --install-extension localforge-*.vsix
+```
+This produces the `out\` folder. You need to do this once before packaging or running.
+
+### 3. Test it in VS Code (development mode — fastest way to try it)
+```powershell
+code .
+```
+Then press **F5**. This opens a new VS Code window with the extension loaded.
+Open any code file in that window, save it, and watch the squiggles appear.
+
+### 4. Package it as a .vsix (the installable file)
+```powershell
+npm run package
+```
+This creates `localforge-0.1.0.vsix` in the folder.
+
+### 5. Install the .vsix into VS Code permanently
+**Option A — drag and drop:**
+Drag `localforge-0.1.0.vsix` onto the VS Code window.
+
+**Option B — command line:**
+```powershell
+code --install-extension localforge-0.1.0.vsix
 ```
 
-Full step-by-step guides with troubleshooting: [`desktop-app/README.md`](desktop-app/README.md) and [`vscode-extension/README.md`](vscode-extension/README.md).
+**Option C — VS Code UI:**
+Extensions panel (Ctrl+Shift+X) → `···` menu (top right) → "Install from VSIX…" → pick the file.
+
+Restart VS Code. The ▰ icon appears in the activity bar.
 
 ---
 
-## Usage
+## Configuration
 
-1. Launch **LocalForge** — it starts the bundled inference engine and loads the model
-2. Open VS Code with the LocalForge extension installed
-3. **Chat** — click the ▰ icon in the activity bar
-4. **Inline completions** — just type, ghost text appears
-5. **Diagnostics** — save a file, AI-powered issues appear in the Problems panel
-6. **Commands** — select code → right-click → LocalForge ▰ → Explain / Fix Bug / Refactor / Generate Tests
-7. **Repository context** — index a folder from the sidebar, then toggle "Use repo context" for codebase-aware answers
+Open Settings (Ctrl+,) and search "LocalForge":
 
----
+| Setting | Default | What it does |
+|---|---|---|
+| `localforge.engineUrl` | `http://127.0.0.1:8080` | Where the llama-server is listening |
+| `localforge.model` | `qwen2.5-coder-3b` | Model label sent in requests |
+| `localforge.inlineCompletions` | `true` | Turn ghost-text completions on/off |
+| `localforge.completionDebounceMs` | `600` | How long to wait after typing before requesting |
+| `localforge.diagnosticsOnSave` | `true` | Run analysis on save |
+| `localforge.maxTokens` | `1024` | Max tokens per response |
 
-## Design notes
-
-- **Loopback-only networking.** The engine binds to `127.0.0.1` exclusively. No remote calls are made at runtime — this was verified by testing with networking disabled.
-- **Model swapping without recompilation.** A `ModelProvider` trait abstracts inference backends; switching the active model is a one-line change in `registry.yaml`.
-- **Two-layer diagnostics.** Fast pattern-based checks run instantly; deeper LLM-based analysis runs on save, debounced to avoid overwhelming a CPU-only model.
-- **Hardware-aware defaults.** The bundled model (3B, Q4 quantisation) was chosen specifically to fit comfortably in 16 GB of RAM on CPU-only hardware — the most common constraint for a genuinely offline tool.
+### If the engine URL is different
+If you changed the llama-server port in `registry.yaml`, update `localforge.engineUrl` to match.
 
 ---
 
-## Roadmap
+## Troubleshooting
 
-- [ ] JetBrains and Neovim integrations via a shared LSP server
-- [ ] Optional GPU acceleration (CUDA/Vulkan) for supported hardware
-- [ ] Automatic workspace indexing (currently manual per-folder)
-- [ ] Linux installer targets (.deb / .AppImage)
+**Status bar shows "LocalForge offline":**
+The desktop app isn't running, or the engine is still warming up. Launch LocalForge first,
+wait for the "Heating the forge" screen to pass, then try again.
 
----
+**No squiggles appearing:**
+Check that `localforge.diagnosticsOnSave` is `true` and save the file (Ctrl+S).
+Also check the Problems panel (Ctrl+Shift+M) — if nothing is there, the engine may have
+returned an empty analysis (common for very short files or files the model doesn't recognise).
 
-## License
+**Completions don't appear:**
+Make sure `localforge.inlineCompletions` is enabled. The completion fires after the debounce
+delay — default 600ms. Increase it if you're on a slower CPU.
 
-MIT — see [LICENSE](LICENSE).
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+**"Engine error: connect ECONNREFUSED":**
+The LocalForge desktop app is closed. Start it, wait for warmup, then save a file to trigger.
