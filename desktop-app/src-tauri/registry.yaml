@@ -1,0 +1,56 @@
+# LocalForge model registry.
+# Swap models by editing this file (it lives in your app config dir after first run)
+# or by using the model picker in the app. No recompile needed.
+
+active: qwen-coder-local            # the model used for chat right now
+
+embeddings:                         # used for repository RAG
+  provider: llamacpp
+  base_url: "http://127.0.0.1:8081"
+  model_ref: "nomic-embed-text"
+
+providers:
+  ollama:   { base_url: "http://127.0.0.1:11434" }
+  llamacpp: { base_url: "http://127.0.0.1:8080" }
+
+# Sidecar inference servers the app launches on startup.
+# Only started when the bundled llama-server.exe + model files exist
+# (i.e. in the shipped/offline build, or in dev after running fetch-deps.ps1).
+sidecars:
+  - name: chat
+    model_file: "models/qwen2.5-coder-3b-instruct-q4_k_m.gguf"
+    port: 8080
+    ctx: 8192
+    embedding: false
+  - name: embed
+    model_file: "models/nomic-embed-text-v1.5.Q4_K_M.gguf"
+    port: 8081
+    ctx: 2048
+    embedding: true
+
+models:
+  # ---- Bundled, fully offline (default) ----
+  - id: qwen-coder-local
+    provider: llamacpp
+    model_ref: "qwen2.5-coder-3b"   # label only; llama-server serves the loaded gguf
+    role: chat
+    tier: "16GB"
+    context: 8192
+    temperature: 0.2
+
+  # ---- Optional: if you also run Ollama on your dev machine ----
+  - id: qwen-coder-ollama
+    provider: ollama
+    model_ref: "qwen2.5-coder:7b"
+    role: chat
+    tier: "16GB"
+    context: 8192
+    temperature: 0.2
+
+  - id: deepseek-r1-ollama
+    provider: ollama
+    model_ref: "deepseek-r1:14b"
+    role: reasoning
+    tier: "16GB"
+    context: 16384
+    temperature: 0.3
