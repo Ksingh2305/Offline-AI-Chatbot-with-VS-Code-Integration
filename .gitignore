@@ -1,53 +1,7 @@
-# ── Dependencies ──────────────────────────────────────────────────────────
-node_modules/
-**/node_modules/
-
-# ── Build outputs ─────────────────────────────────────────────────────────
-dist/
-out/
-build/
-**/target/
-*.vsix
-
-# ── Rust ──────────────────────────────────────────────────────────────────
-Cargo.lock
-**/*.rs.bk
-
-# ── Tauri bundled resources (large binaries — never commit these) ─────────
-desktop-app/src-tauri/resources/llama/
-desktop-app/src-tauri/resources/models/
-desktop-app/src-tauri/icons/*.png
-desktop-app/src-tauri/icons/*.ico
-desktop-app/src-tauri/icons/*.icns
-
-# ── Model files — never commit GGUF/weights to git ─────────────────────────
-*.gguf
-*.bin
-*.safetensors
-
-# ── Installer output ────────────────────────────────────────────────────────
-*.exe
-*.msi
-*.AppImage
-*.deb
-*.rpm
-!docs/**/*.exe
-
-# ── Environment / secrets ───────────────────────────────────────────────────
-.env
-.env.local
-*.pem
-*.key
-
-# ── Editor / OS ──────────────────────────────────────────────────────────────
-.vscode/settings.json
-.idea/
+node_modules
+dist
+src-tauri/target
+# Bundled engine + models are fetched by scripts/fetch-deps.ps1, not committed.
+src-tauri/resources/llama/
+src-tauri/resources/models/
 .DS_Store
-Thumbs.db
-
-# ── Logs ──────────────────────────────────────────────────────────────────
-*.log
-npm-debug.log*
-
-# ── TypeScript build info ───────────────────────────────────────────────────
-*.tsbuildinfo
